@@ -1,0 +1,102 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+float4 Result_TexelSize;
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+
+    float2 co = float2(id.x, id.y);
+    float real1 = frac(sin(dot(co, float2(12.9898, 78.233) * 2.0)) * 43758.5453);
+    float real2 = frac(sin(dot(co, float2(13.9898, 78.233) * 2.0)) * 43758.5453);
+    float real3 = frac(sin(dot(co, float2(12.9898, 78.233) * 2.0)) * 47758.5453);
+    float real4 = frac(sin(dot(co, float2(12.3898, 78.243) * 2.0)) * 48788.5453);
+    float real5 = frac(sin(dot(co, float2(11.3838, 78.243) * 2.0)) * 48738.5453);
+
+    //Result[id.xy] = float4(255* real, 255* real, 255* real, real);
+
+
+    int i = id.x + Result_TexelSize.z * id.y;
+    //int real = round(cos(id.x/20.0) + cos(id.y/20.0) -1.4);
+    //int real = 1;
+
+
+    if (real4 + real5 > 1.983)
+    {
+        Result[id.xy] = float4(real1, real2, real3, 1);
+    }
+    else 
+    {
+        Result[id.xy] = float4(0, 0, 0, 0);
+    }
+
+}
+
+uint2 wrap(uint2 u)
+{
+    return uint2(u.x % Result_TexelSize.z, u.y % Result_TexelSize.z);
+}
+
+#pragma kernel GameOfLife
+RWTexture2D<float4> Prev;
+RWBuffer<int> done;
+RWTexture2D<float4> Perlin;
+
+[numthreads(8, 8, 1)]
+void GameOfLife(uint3 id : SV_DispatchThreadID)
+{
+    //float4 sum = Prev[id.xy + uint2(0, 1)] + Prev[id.xy + uint2(1, 1)] +
+        //Prev[id.xy + uint2(1, 0)] + Prev[id.xy + uint2(-1, -1)] + Prev[id.xy + uint2(0, -1)] +
+        //Prev[id.xy + uint2(-1, 0)] + Prev[id.xy + uint2(-1, 1)] + Prev[id.xy + uint2(1, -1)];
+
+    float4 sum = Prev[wrap(id.xy + uint2(0, 1))] + Prev[wrap(id.xy + uint2(0, -1))] + Prev[wrap(id.xy + uint2(1, 0))] + Prev[wrap(id.xy + uint2(-1, 0))];
+    float count = floor(Prev[wrap(id.xy + uint2(0, 1))].w) + floor(Prev[wrap(id.xy + uint2(0, -1))].w) + floor(Prev[wrap(id.xy + uint2(1, 0))].w) + floor(Prev[wrap(id.xy + uint2(-1, 0))].w);
+    float4 avg = sum / count;
+
+    //float4 avg = 
+    done[0] = 1;
+
+    int currentVal = Prev[id.xy].w;
+    if (currentVal == 1)
+    {
+        Result[id.xy] = Prev[id.xy];
+    }
+    else if (count == 0) 
+    {
+        Result[id.xy] = float4(0, 0, 0, 0);
+    }
+    else
+    {
+        float newVal = Prev[id.xy].w + Perlin[id.xy];
+        done[0] = newVal;
+        if (newVal >= 1)
+        {
+            Result[id.xy] = float4(avg.xyz, 1);
+            done[0] = 3;
+        }
+        else 
+        {
+            Result[id.xy] = float4(0, 0, 0, newVal);
+        }
+    }
+    //currentVal = 0;
+    //Result[id.xy] = float4(255 * currentVal, 255 * currentVal, 255 * currentVal, currentVal);
+    //Result[id.xy] = Prev[id.xy];
+}
+
+
+
+#pragma kernel Oceans
+RWTexture2D<float4> Continents;
+
+[numthreads(8, 8, 1)]
+void Oceans(uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = round(Continents[id.xy].z - 0.2);
+}
+
