@@ -29,7 +29,6 @@ public class AutomataCamera : MonoBehaviour
 
         buffer = new ComputeBuffer(1, 4);
 
-
         textures = new RenderTexture[buffsize];
         for (int j = 0; j < buffsize; j++)
         {
@@ -53,6 +52,28 @@ public class AutomataCamera : MonoBehaviour
             finishedTextures[j].enableRandomWrite = true;
             finishedTextures[j].Create();
         }
+
+
+        Texture2D seedRendTex = new Texture2D(mapSize, mapSize);
+        Color[] BlackPixels = Enumerable.Repeat(Color.clear, mapSize * mapSize).ToArray();
+        seedRendTex.SetPixels(BlackPixels);
+
+        for (int j = 0; j < 20; j++)
+        {
+            int r1 = (int) (Random.Range(0f, 1f) * mapSize);
+            int r2 = (int) (Random.Range(0f, 1f) * mapSize);
+            print(r1);
+            seedRendTex.SetPixel(r1, r2, Random.ColorHSV());
+
+            //new Color((j+1)/21.0f, 0f, 0f, 1f)
+        }
+
+        seedRendTex.Apply();
+
+        Graphics.Blit(seedRendTex, finishedTextures[4]);
+        Graphics.Blit(seedRendTex, textures[0]); 
+
+
 
         GeneratePerlin();
 
@@ -92,7 +113,7 @@ public class AutomataCamera : MonoBehaviour
 
     private void OnRenderImage(RenderTexture src, RenderTexture dest)
     {        
-        Graphics.Blit(finishedTextures[curRenderedTexture], dest);
+        Graphics.Blit(finishedTextures[curRenderedTexture % finishedTextures.Length], dest);
     }
 
     private static Vector2 GetRandomDirection()
