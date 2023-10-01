@@ -330,6 +330,7 @@ MonoBehaviour:
   curRenderedTexture: 0
   perlinShader: {fileID: 7200000, guid: b6563888d16a457448a56925de842fbd, type: 3}
   mapSize: 1024
+  numOfPlates: 50
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

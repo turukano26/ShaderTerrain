@@ -21,6 +21,8 @@ public class AutomataCamera : MonoBehaviour
 
     public int mapSize;
 
+    public int numOfPlates;
+
 
     // Start is called before the first frame update
     void Start()
@@ -58,19 +60,16 @@ public class AutomataCamera : MonoBehaviour
         Color[] BlackPixels = Enumerable.Repeat(Color.clear, mapSize * mapSize).ToArray();
         seedRendTex.SetPixels(BlackPixels);
 
-        for (int j = 0; j < 20; j++)
+        for (int j = 0; j < numOfPlates; j++)
         {
             int r1 = (int) (Random.Range(0f, 1f) * mapSize);
             int r2 = (int) (Random.Range(0f, 1f) * mapSize);
             print(r1);
-            seedRendTex.SetPixel(r1, r2, Random.ColorHSV());
-
-            //new Color((j+1)/21.0f, 0f, 0f, 1f)
+            seedRendTex.SetPixel(r1, r2, new Color((j + 1) / (numOfPlates + 1), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1f));
         }
 
         seedRendTex.Apply();
 
-        Graphics.Blit(seedRendTex, finishedTextures[4]);
         Graphics.Blit(seedRendTex, textures[0]); 
 
 
@@ -108,6 +107,7 @@ public class AutomataCamera : MonoBehaviour
         if (Input.GetKeyDown("space"))
         {
             RunOceans();
+            RunVolcanism();
         }
     }
 
@@ -165,5 +165,14 @@ public class AutomataCamera : MonoBehaviour
         compute.SetTexture(oceanKernel, "Continents", textures[index]);
         compute.SetTexture(oceanKernel, "Result", finishedTextures[3]);
         compute.Dispatch(oceanKernel, textures[0].width / 8, textures[0].height / 8, 1);
+    }
+
+    void RunVolcanism()
+    {
+        int volcanismKernel = compute.FindKernel("Volcanism");
+
+        compute.SetTexture(volcanismKernel, "Plates", textures[index]);
+        compute.SetTexture(volcanismKernel, "VolcanismResult", finishedTextures[4]);
+        compute.Dispatch(volcanismKernel, textures[0].width / 8, textures[0].height / 8, 1);
     }
 }
