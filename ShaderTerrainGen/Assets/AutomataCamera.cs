@@ -47,8 +47,8 @@ public class AutomataCamera : MonoBehaviour
         
 
 
-        finishedTextures = new RenderTexture[5];
-        for (int j = 0; j < 5; j++)
+        finishedTextures = new RenderTexture[6];
+        for (int j = 0; j < 6; j++)
         {
             finishedTextures[j] = new RenderTexture(mapSize, mapSize, 24);
             finishedTextures[j].enableRandomWrite = true;
@@ -108,6 +108,7 @@ public class AutomataCamera : MonoBehaviour
         {
             RunOceans();
             RunVolcanism();
+            AddTextures(finishedTextures[3], finishedTextures[4], finishedTextures[5]);
         }
     }
 
@@ -174,5 +175,15 @@ public class AutomataCamera : MonoBehaviour
         compute.SetTexture(volcanismKernel, "Plates", textures[index]);
         compute.SetTexture(volcanismKernel, "VolcanismResult", finishedTextures[4]);
         compute.Dispatch(volcanismKernel, textures[0].width / 8, textures[0].height / 8, 1);
+    }
+
+    void AddTextures(RenderTexture input1, RenderTexture input2, RenderTexture output)
+    {
+        int addKernel = compute.FindKernel("AddTextures");
+
+        compute.SetTexture(addKernel, "Input1", input1);
+        compute.SetTexture(addKernel, "Input2", input2);
+        compute.SetTexture(addKernel, "Output", output);
+        compute.Dispatch(addKernel, textures[0].width / 8, textures[0].height / 8, 1);
     }
 }
